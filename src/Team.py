@@ -1,129 +1,129 @@
 # This file will execute all the functions related to the teams
 import src.CommonFuntion as cf
 import src.Player as P
+import src.Clubs as Cl
+from src.UserValidation import register
 import time
-
-Team_Data_Filename = "files/Data/TeamData.csv"
-Team_Data_Fieldname = ["Id_Team", "Season", "Club", "Category", "Staff", "Players"]
+import ast
 
 Club_Data_Filename = "files/Data/ClubData.csv"
-Club_Data_Fieldname = ["Name", "Court", "Teams"]
+Club_Data_Fieldname = ["ID_Club", "court", "staff" ,"teams"]
+
+Team_Data_Filename = "files/Data/TeamData.csv"
+Team_Data_Fieldname = ["ID_Team", "season", "club", "category", "staff", "players"]
 
 Player_Data_Filename = "files/Data/PlayerData.csv"
+Player_Data_Fieldname = ["ID_Player", "number", "name", "surname", "birthday", "position", "ID_Team"]
+
+User_Data_Filename = "files/Data/UserData.csv"
 
 # The Id_Team field is made of the season + 3 first letters of Club + 3 first letters of Category
 
-class Team:
-    def __init__(self, Id_Team:str, Season:str, Club:str, Category:str, Staff:list, Players:list):
-        self.Id_Team = Id_Team
+class Team ():
+    def __init__(self, ID_Team: str, Season: str, Club: str, Category: str, Staff: list, Players: list):
+        self.Id_Team = ID_Team
         self.Season = Season
         self.Club = Club
         self.Category = Category
         self.Staff = Staff
         self.Players = Players
+    
+    def __str__(self):
+        return f"ID_Team: {self.Id_Team} - {self.Season} - {self.Club} - {self.Category} - {self.Staff} - {self.Players}"
 
-def CreateClub():
-    name = input("Ingrese el nombre: ").upper()
-    court = []
-    while True:
-        name_court = input ("Ingrese el nombre de la cancha (pulse @ cuando no hayan mas): ")
-        if name_court == "@": break
-        court.append(name_court.upper())
-    new_club = [{"Name":name, "Court":court, "Teams":""}]
-    # Corresponde a los equipos del club, que como es de nueva creacion no tiene de momento
-    cf.WriteFile(Club_Data_Filename, Club_Data_Fieldname, new_club)
-def CreateTeam ():
-    for field in Team_Data_Fieldname:
-        match field:
-            case "Club":
-                while True:
-                    Clubs = cf.ReadFile(Club_Data_Filename)
-                    print("Seleccione un club:")
-                    for i, club in enumerate(Clubs):
-                        print(f"{i+1}. {club['Name']}")
-                    op = input("Añadir un club (S/N): ")
-                    if op.upper() == "S": 
-                        CreateClub()
-                        continue
-                    elif not Clubs: return
-                    else: 
-                        try:
-                            op = int(input("Opcion de club: "))
-                            if 0 < op > len(Clubs): raise ValueError("ERROR: Opcion no valida")
-                            club = Clubs[op-1]
-                            break
-                        except ValueError as e:
-                            print(e)
-                            continue
-            case "Category":
-                Categories = ["Escuelita U6", "Prebenjamin U7", "Benjamin U9", "PreMinibasket U10", 
-                            "Minibasket U11", "PreInfantil U12", "Infantil U13", "PreCadete U14", "Cadete U15", "Junior U16-U17", "Senior"]
-                print("Seleccione una categoría:")
-                for i, category in enumerate(Categories):
-                    print(f"{i+1}. {category}")
-                while True:
-                    try:  
-                        op = int(input("Opcion: ")) - 1
-                        if op < 0 or op >= len(Categories):
-                            raise ValueError("Opción inválida")
-                        Category = Categories[op]
-                        break
-                    except ValueError as e:
-                        print(e)
-                        continue
-            case "Staff":
-                Staff = ["HeadCoach - 1er Entrenador", "Assistant Coach - 2o Entrenador", "Conditioning Manager - Preparador Fisico", "Team Manager - Delegado"]
-                Team_staff = []
-                print("Ingrese el staff Técnico del equipo (Ingrese @ si su equipo no cuenta con alguno de ellos): ")
-                for staff in Staff:
-                    Team_staff.append(input(f"Nombre del {staff}: "))
-            case "Players":
-                Players = cf.ReadFile(Player_Data_Filename)
-                Team_players = []
-                i = 0
-                while i < 16:
-                    print(f"Jugador {i+1}:")
-                    name_surname = input ("Ingrese el \"Apellido1 Apellido2, Nombre/s\" del jugador (Ingrese @ cuando no haya mas jugadores que añadir): ")
-                    if name_surname == "@": break
-                    name_surname = name_surname.split(",")
-                    for player in Players:
-                        if player["Name"] == name_surname[1] and player["Surname"] == name_surname[0]:
-                            Team_players.append(player)
-                            i += 1
-                            break
-                    else:
-                        print("El jugador no existe.")
-                        op = input ("Quiere crear un nuevo jugador (S/N): ")
-                        if op.upper() == "S":
-                            P.CreatePlayer()
-            case _: 
-                continue
+def CreateTeam():
+    """Create a new team and save it to the database."""
+    cf.ClearScreen()
+    print("CREA TU EQUIPO")
+    # Select the club of the team
+    club = Cl.SelectClub()
+
+    # Select the category of the team
+    categories = [
+        "Escuelita U6", "Prebenjamin U7", "Benjamin U9", "PreMinibasket U10",
+        "Minibasket U11", "PreInfantil U12", "Infantil U13", "PreCadete U14",
+        "Cadete U15", "Junior U16-U17", "Senior"
+    ]
+    category = cf.SelectOption("Seleccione una categoría:", categories)
+
+    # Select the staff of the new team
+    Staff_Roles = [
+        "HeadCoach - 1er Entrenador", "Assistant Coach - 2o Entrenador",
+        "Conditioning Manager - Preparador Físico", "Team Manager - Delegado"
+    ]
+    Team_Staff = {}
+    print("Registra al staff del equipo: ")
+    users = cf.ReadFile(User_Data_Filename)
+    for role in Staff_Roles:
+        while True:
+            usr_name = input(f"Ingrese el nombre de usuario del {role} (Presione enter si no tiene ese rol en su equipo): ")
+            if not usr_name: break
+            # Check if the user already exists
+            user = next((u for u in users if u["UserName"] == usr_name), None)
+            if not user: 
+                ops = ["Volver a intentar", "Registrar nuevo usuario"]
+                op = cf.SelectOption(f"No existe el usuario {usr_name}",ops)
+                if op == ops[0]: continue
+                else: 
+                    register()
+                    continue
+            Team_Staff[role] = usr_name
+            break
+
+    # Select the players of the new team
+    team_players = []
+    while len(team_players) < 16:
+        player = P.SelectPlayer()
+        if not player: break
+        team_players.append(player)
+
+    # Calculates the rest of the necessary information
     season = str(time.localtime().tm_year)
     season = str(int(season[2:]) - 1) + "/" + season[2:]
-    ID_TEAM = season + club["Name"][0:3] + category[0:3]
-    data = {"Id_Team":ID_TEAM, "Season":season, "Club":club, "Category":category, "Staff":staff, "Players":Players}
-    cf.WriteFile(Team_Data_Filename, Team_Data_Fieldname, data)
-def UpdateTeam ():
-    pass
+    ID_Team = f"{season}{club.ID_Club[:3].upper()}{category[:3].upper()}"
+    
+    # Saves the team to the database and updates the club data
+    team_data = [{
+        "ID_Team": ID_Team, "season": season, "club": club.ID_Club,
+        "category": category, "staff": Team_Staff, "players": [ID.ID_Player for ID in team_players]
+    }]
+    cf.AppendData(Team_Data_Filename, Team_Data_Fieldname, team_data)
 
-def DeleteTeam ():
-    pass
+    # Updates the club data to include the new team ID
+    club.AddTeam(ID_Team)
+    cf.UpdateData(Club_Data_Filename, Club_Data_Fieldname, [vars(club)], ID_to_Mod="ID_Club")
+    
+    # Updates the player
+    for player in team_players:
+        player.AddTeam(ID_Team)
+        cf.UpdateData(Player_Data_Filename, Player_Data_Fieldname, [vars(player)], ID_to_Mod="ID_Player")
 
-def SelectTeam (User):
-    data = cf.ReadFile(Team_Data_Filename)
-    print("Seleccione uno de tus equipo:")
-    for i, row in enumerate(data):
-        if User.rol in row["Staff"]:
-            print(f"{i+1}. {row['Club']} - {row['Category']}")
-    op = input ("Quiere crear un equipo (S/N): ")
-    if op.upper() == "S": CreateTeam()
-    elif not data: return
+def SelectTeam(User):
+    """Allows a user to select a team they belong to."""
     while True:
-        try:
-            op = int(input("Seleccione un equipo: ")) - 1
-            if op <= 0 or op > len(data):
-                raise ValueError("Opción inválida")
-            Selected_Team = Team(data[op]["Id_Team"], data[op]["Season"], data[op]["Club"], data[op]["Category"], data[op]["Staff"], data[op]["Player"])
-            return Selected_Team
-        except ValueError as e:
-            print(e)
+        teams = cf.ReadFile(Team_Data_Filename)
+        Users_Team = [t for t in teams if User.username in ast.literal_eval(t["staff"]).values()]
+
+        if not Users_Team: # If ther are no user's teams
+            print("No tienes equipos asignados.")
+            if input("¿Quieres crear un equipo? (S/N): ").upper() == "S":
+                CreateTeam()
+                continue
+            return None
+
+        # Generate the lists of all the teams and include the option of creatig another
+        options = [f"{t['club']} - {t['category']}" for t in Users_Team]
+        options.append("Crear un equipo")
+        selected_team = cf.SelectOption("Seleccione uno de sus equipos:", options)
+
+        if not selected_team: # If the user didn't select a team
+            print("No se ha seleccionado ningun equipo")
+            return None
+        if selected_team == "Crear un equipo":
+            CreateTeam()
+            continue
+
+        # In case the user selected a team, divide the option to catch the ID
+        selected_team = selected_team.split("-")
+        selected_team = next((t for t in teams if t['club'] == selected_team[0].strip() and t['category'] == selected_team[1].strip()), None)
+        return Team(**selected_team)

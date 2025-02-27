@@ -1,0 +1,5 @@
+FORMATE 
+* ID'S: ID_Something
+* Other Variables: something / Something_Else
+* functions name: Function / FunctionName
+* classe name: class

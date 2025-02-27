@@ -48,6 +48,8 @@ def login():
         return None
     
     while True:
+        cf.ClearScreen()
+        print("--- LOGIN ---")
         username = input("Introduce tu nombre de usuario: ")
         password = input("Introduce tu contraseña: ")
         try:
@@ -55,13 +57,17 @@ def login():
             if role: 
                 Current_User = User(username, password, role)
                 return Current_User
-            else: raise ValueError("No se encuentra ningun usuario con dicha contraseña")
+            else: 
+                raise ValueError("No se encuentra ningun usuario con dicha contraseña")
         except ValueError as e:
             print(e)
-            continue
+            op = input("Registrarse (S/N): ")
+            if op.upper() == "S": register()
+            else: continue
 
 def register():
-    def Encrypt(password, key):
+    def Encrypt(password):
+        key = random.randint(0,100)
         alphabet = "áéíóúabcdefghijklmnñopqrstuvwxyzABCDEFGHIJKLMNÑOPQRSTUVWXYZ ,.;:!?'-_+()}{[]<=>|/\\~123456789" #Declaro un string con todos los caracteres del teclado
         encrypted = "" #Variable que va a almacenar el texto cifrado
         for i in password: #Recorro cada caracter del texto a cifrar
@@ -72,24 +78,24 @@ def register():
                 else:
                     encrypted += alphabet[pos+key] #En caso contrario, se suma a la cadena cifrada la letra del alfabeto en la posicion calculada
             else: encrypted += i #Si no es un caracter del alfabeto, se añade al mensaje cifrado como está
-        return encrypted
-    try:
-        while True:
+        return encrypted, key
+    while True:
+        try:
+            cf.ClearScreen()
+            print("--- REGISTRO ---")
             username = input("Introduce tu nombre de usuario: ")
             password = input("Introduce tu contraseña: ")
-            key = random.randint(0,100)
-            password = Encrypt(password, key)
+            password, key = Encrypt(password)
             rol = input("Introduce tu rol:\n1. Coach\n2. Player\nOpcion: ")
             if rol == "1": rol = "Coach"
             elif rol == "2": rol = "Player"
             else: raise ValueError("No has introducido un rol válido.")
-            try:
-                New_User = User(username, password, rol)
-                break
-            except ValueError as e:
-                print(e)
-        data = cf.ReadFile(User_Data_Filename)
-        data.append({"UserName":New_User.username, "password":New_User.password, "rol":New_User.rol, "key":key})
-        cf.WriteFile(User_Data_Filename, User_Data_Fieldnames ,data)
-    except ValueError as e:
-        print(e)
+            
+            New_User = User(username, password, rol)
+            break
+        except ValueError as e:
+            print(e)
+    data = cf.ReadFile(User_Data_Filename)
+    data.append({"UserName":New_User.username, "password":New_User.password, "rol":New_User.rol, "key":key})
+    cf.WriteFile(User_Data_Filename, User_Data_Fieldnames ,data)
+    
