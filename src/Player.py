@@ -23,7 +23,9 @@ class Player ():
 
     def AddTeam(self, ID_Team):
         """Adds a team to the player, a player could play in a more of 1 team, so it will be a list"""
+        
         self.ID_Team.append(ID_Team)
+        cf.UpdateData(Player_Data_Filename, Player_Data_Fieldnames, [vars(self)], "ID_Player")
     def __str__(self):
         return f"Nombre: {self.name} {self.surname}, Posición: {self.position}"
 
@@ -44,6 +46,8 @@ def Encrypt(password: str) -> tuple:
 def CreatePlayer():
     """Creates a new player and registers them in the system"""
 
+    cf.ClearScreen()
+    print("--- REGISTRO DE JUGADOR ---")
     # Personal data of the player
     print("Datos del jugador")
     name = input("Nombre/s: ").strip().title()
@@ -86,9 +90,12 @@ def CreatePlayer():
     new_user_dict = [{
         "UserName": ID_Player,
         "password": password,
+        "rol":"player",
         "key": key
     }]
     cf.AppendData(User_Data_Filename, User_Data_Fieldnames, new_user_dict)
+    print("Jugador y usuario creado correctamente")
+    input("Presione enter para continuar...")
 
 def EditPlayer():
     pass
@@ -98,8 +105,9 @@ def DeletePlayer():
 
 def SelectPlayer():
     """ Select the players of the new team """
-    print("Registra a los jugadores del equipo: ")
     while True:
+        cf.ClearScreen()
+        print("-- SELECCIONA JUGADORES --")
         players = cf.ReadFile(Player_Data_Filename)
         if not players:
             print("No hay jugadores disponibles. Creando un nuevo jugador.")
@@ -110,6 +118,7 @@ def SelectPlayer():
         if not Name_Surname: return None
         if "," not in Name_Surname: 
             print("Formato de introduccion incorrecta, por favor vuelva a intentarlo")
+            input("Presione enter para continuar...")
             continue
         Name_Surname = Name_Surname.split(",")
         Filtered_Players = [p for p in players if p["name"] == Name_Surname[1].strip() and p["surname"] == Name_Surname[0]]
@@ -118,6 +127,9 @@ def SelectPlayer():
             print("No existe ningún jugador con esa descripción.")
             if input("¿Quiere crear un nuevo jugador? (S/N): ").upper() == "S": CreatePlayer()
             continue
+
+        cf.ClearScreen()
+        print("--- SELECCIONA JUGADOR ---")
         Selected_Player = cf.SelectOption("Seleccione un jugador:", [f"{p["ID_Player"]}, {p['number']} - {p['name']} {p['surname']}" for p in Filtered_Players])
         Player_Data = next((p for p in players if p["ID_Player"] == Selected_Player.split(",")[0]), None)
         player = Player(**Player_Data)

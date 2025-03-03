@@ -2,7 +2,7 @@
 
 import src.CommonFuntion as cf
 import src.UserValidation as uv
-import src.Team as T
+from src.Team import TeamMenu, SelectTeam
 from src.Practices import PracticesMenu
 from src.Player import PlayerMenu
 from src.Games import GamesMenu
@@ -41,31 +41,28 @@ def MainMenu(user):
         # Selección de equipo
         Team = None
         while not Team:
-            Team = T.SelectTeam(user)
+            Team = SelectTeam(user)
             if not Team:
                 print("No seleccionaste un equipo válido.")
                 retry = input("¿Intentar de nuevo? (S/N): ").strip().upper()
                 if retry != "S":
                     return
+        while True:
+            cf.ClearScreen()
+            options = ["EDITAR EQUIPO","ENTRENOS", "JUGADORES", "PARTIDOS", "SALIR"]
+            op = cf.SelectOption(prompt="--- MENÚ PRINCIPAL ---", options=options)
 
-        print("\n--- MENÚ PRINCIPAL ---")
-        print("1. MENU ENTRENOS")
-        print("2. MENU JUGADORES")
-        print("3. MENU PARTIDOS")
-        print("4. SALIR")
-
-        op = input("Opción: ")
-
-        match op:
-            case "1": PracticesMenu()
-            case "2": PlayerMenu(Team)
-            case "3": GamesMenu(Team)
-            case "4":
-                print("Saliendo...")
-                break
-            case _:
-                print("Opción inválida. Intente de nuevo.")
-                input("Presione Enter para continuar...")  # Pausa antes de refrescar pantalla
+            match op:
+                case "EDITAR EQUIPO": TeamMenu(Team)
+                case "ENTRENOS": PracticesMenu()
+                case "JUGADORES": PlayerMenu(Team)
+                case "PARTIDOS": GamesMenu(Team)
+                case "SALIR":
+                    print("Saliendo...")
+                    break
+                case _:
+                    print("Opción inválida. Intente de nuevo.")
+                    input("Presione Enter para continuar...")  # Pausa antes de refrescar pantalla
 
 if __name__ == '__main__':
     Main()

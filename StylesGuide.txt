@@ -2,4 +2,6 @@ FORMATE
 * ID'S: ID_Something
 * Other Variables: something / Something_Else
 * functions name: Function / FunctionName
-* classe name: class
+* classe name: class class
+* Atributtes name: self.Atribute
+* Press enter to continue: input("Presione enter para continuar...")

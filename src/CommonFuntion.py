@@ -53,10 +53,12 @@ def UpdateData(filename: str, fieldnames:list ,data: list, ID_to_Mod:str):
 
     file_data = ReadFile(filename)
     for row in file_data:
+        if ID_to_Mod not in row: 
+            continue
         if row[ID_to_Mod] == data[0][ID_to_Mod]:
-            row.update(data[0])
+            file_data[file_data.index(row)] = data[0]
             break
-    WriteFile(filename, fieldnames, data)
+    WriteFile(filename, fieldnames, file_data)
 
 def ValidateData (typ, data):
     match typ:
